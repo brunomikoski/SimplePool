@@ -88,7 +88,9 @@ namespace BrunoMikoski.Pooling
         public void DestroyInternal()
         {
             destroyInternal = true;
-            Destroy(gameObject);
+            
+            if (!SimplePool.IsApplicationQuiting)
+                Destroy(gameObject);
         }
     }
 }
