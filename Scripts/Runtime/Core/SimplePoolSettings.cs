@@ -18,6 +18,13 @@ namespace BrunoMikoski.Pooling
         private bool allowDestructionOfPooledItems;
         public bool AllowDestructionOfPooledItems => allowDestructionOfPooledItems;
 
+        
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Initialize()
+        {
+            LoadOrCreateInstance<SimplePoolSettings>();
+        }
+        
         public void SetDefaultPoolSize(int poolSize)
         {
             defaultPoolSize = poolSize;
