@@ -4,6 +4,7 @@ using UnityEngine.Scripting;
 namespace BrunoMikoski.Pooling
 {
     [Preserve]
+    [CreateAssetMenu(menuName = "Create SimplePoolSettings", fileName = "SimplePoolSettings", order = 0)]
     public class SimplePoolSettings : ResourceScriptableObjectSingleton<SimplePoolSettings>
     {
         [SerializeField]
@@ -19,7 +20,7 @@ namespace BrunoMikoski.Pooling
         public bool AllowDestructionOfPooledItems => allowDestructionOfPooledItems;
 
         
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Initialize()
         {
             LoadOrCreateInstance<SimplePoolSettings>();
