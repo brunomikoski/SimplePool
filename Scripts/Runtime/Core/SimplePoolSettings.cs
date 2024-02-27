@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace BrunoMikoski.Pooling
 {
+    [Preserve]
     public class SimplePoolSettings : ResourceScriptableObjectSingleton<SimplePoolSettings>
     {
         [SerializeField]

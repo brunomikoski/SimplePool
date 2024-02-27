@@ -29,6 +29,7 @@ namespace BrunoMikoski.Pooling
         {
             if (initialized)
                 return;
+            
             initialized = true;
 
             prefabIDToPool = new Dictionary<int, Pool>();

@@ -1,8 +1,9 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace BrunoMikoski.Pooling
 {
+    [Preserve]
     public class ResourceScriptableObjectSingleton<T> : ScriptableObject where T: ScriptableObject
     {
         private static T instance;
@@ -11,23 +12,23 @@ namespace BrunoMikoski.Pooling
             get
             {
                 if (instance == null)
-                    instance = LoadOrCreateInstance();
+                    instance = LoadOrCreateInstance<T>();
                 return instance;
             }
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static T LoadOrCreateInstance()
+        public static TInstance LoadOrCreateInstance<TInstance>() where TInstance : ScriptableObject
         {
-            if (!TryToLoadInstance(out T resultInstance))
+            if (!TryToLoadInstance<TInstance>(out TInstance resultInstance))
             {
 #if !UNITY_EDITOR
                 return null;
 #else
-                resultInstance = CreateInstance<T>();
+                resultInstance = CreateInstance<TInstance>();
 
                 AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
-                UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(T).Name}.asset");
+
+                UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(TInstance).Name}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();
                 UnityEditor.AssetDatabase.Refresh();
                 return resultInstance;
@@ -39,12 +40,12 @@ namespace BrunoMikoski.Pooling
 
         public static bool Exist()
         {
-            return TryToLoadInstance(out _);
+            return TryToLoadInstance<T>(out _);
         }
 
-        private static bool TryToLoadInstance(out T result)
+        private static bool TryToLoadInstance<TInstance>(out TInstance result) where TInstance: ScriptableObject
         {
-            T newInstance = Resources.Load<T>(typeof(T).Name);
+            TInstance newInstance = Resources.Load<TInstance>(typeof(TInstance).Name);
 
             if (newInstance != null)
             {
@@ -53,13 +54,17 @@ namespace BrunoMikoski.Pooling
             }
 
 #if UNITY_EDITOR
-            string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}")
-                .FirstOrDefault();
+            string[] assets = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(TInstance).Name}");
+            
+            string guid = "";
 
-            if (!string.IsNullOrEmpty(registryGUID))
+            if (assets.Length > 0)
+                guid = assets[0];
+
+            if (!string.IsNullOrEmpty(guid))
             {
-                newInstance = (T) UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(
-                    UnityEditor.AssetDatabase.GUIDToAssetPath(registryGUID));
+                newInstance = (TInstance) UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(
+                    UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
             }
 
             if (newInstance != null)
