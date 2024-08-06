@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -76,8 +78,8 @@ namespace BrunoMikoski.Pooling
 
         private void SetPoolDisplayName()
         {
-            gameObject.name = string.Format("{0} Pool - Size: {1} - [{2} -> {3}]", prefab.name, nextId,
-                initialQuantity, createdAfterInitialSetup);
+            gameObject.name =
+                $"{prefab.name} Pool - Size: {nextId} - [{initialQuantity} -> {createdAfterInitialSetup}]";
         }
 
         private void AddObjectsToPool(int amount)
@@ -102,20 +104,19 @@ namespace BrunoMikoski.Pooling
             return poolMember;
         }
 
-        internal PoolMember Spawn(Vector3 pos, Quaternion rot)
+        internal PoolMember Spawn(Vector3 pos, Quaternion rot, Func<PoolMember, bool> customCheck = null)
         {
-            PoolMember poolMember = GetPoolMember();
+            PoolMember poolMember = GetPoolMember(customCheck);
 
-            poolMember.transform.position = pos;
-            poolMember.transform.rotation = rot;
+            poolMember.transform.SetPositionAndRotation(pos, rot);
 
             ReadyPoolMember(poolMember);
             return poolMember;
         }
 
-        internal PoolMember Spawn(Transform parent, float activeDuration)
+        internal PoolMember Spawn(Transform parent, Func<PoolMember, bool> customCheck = null)
         {
-            PoolMember poolMember = GetPoolMember();
+            PoolMember poolMember = GetPoolMember(customCheck);
 
             poolMember.transform.SetParent(parent, false);
 
@@ -123,9 +124,9 @@ namespace BrunoMikoski.Pooling
             return poolMember;
         }
 
-        internal PoolMember Spawn(Transform parent, Vector3? position, Quaternion? rotation)
+        internal PoolMember Spawn(Transform parent, Vector3? position, Quaternion? rotation,Func<PoolMember, bool> customCheck = null)
         {
-            PoolMember poolMember = GetPoolMember();
+            PoolMember poolMember = GetPoolMember(customCheck);
 
             if (parent != null)
                 poolMember.transform.SetParent(parent);
@@ -146,18 +147,37 @@ namespace BrunoMikoski.Pooling
             return poolMember;
         }
 
-        private PoolMember GetPoolMember()
+        private PoolMember GetPoolMember(Func<PoolMember, bool> customCheck = null)
         {
             EnsurePoolIsNotEmpty();
-            PoolMember poolMember = inactive[0];
-            inactive.RemoveAt(0);
+
+            PoolMember poolMember = null;
+
+            if (customCheck != null)
+            {
+                for (int i = 0; i < inactive.Count; i++)
+                {
+                    if (customCheck(inactive[i]))
+                    {
+                        poolMember = inactive[i];
+                        inactive.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (poolMember == null && inactive.Count > 0)
+            {
+                poolMember = inactive[0];
+                inactive.RemoveAt(0);
+            }
 
             if (poolMember == null)
             {
 #if DEBUG
                 Debug.LogWarning("Retrieved pool member was empty, getting new!");
 #endif
-                return GetPoolMember();
+                return GetPoolMember(customCheck);
             }
 
             active.Add(poolMember);

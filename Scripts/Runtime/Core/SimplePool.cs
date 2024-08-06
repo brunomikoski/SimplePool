@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -140,7 +141,12 @@ namespace BrunoMikoski.Pooling
 
         public static T Spawn<T>(T prefab) where T : Component
         {
-            return Spawn(prefab, null);
+            return Spawn(prefab, null, null);
+        }
+
+        public static T Spawn<T>(T prefab,  Func<PoolMember, bool> instanceValidation) where T : Component
+        {
+            return Spawn(prefab, null, null, null, instanceValidation);
         }
 
         public static T Spawn<T>(T prefab, Vector3 pos, Quaternion rot) where T : Component
@@ -154,18 +160,18 @@ namespace BrunoMikoski.Pooling
         }
 
         public static T Spawn<T>(T prefab, Transform parent = null, Vector3? position = null, Quaternion? rotation =
-            null) where T : Component
+            null, Func<PoolMember, bool> customCheck = null) where T : Component
         {
-            PoolMember poolMember = Spawn(prefab.gameObject, parent, position, rotation);
+            PoolMember poolMember = Spawn(prefab.gameObject, parent, position, rotation, customCheck);
             T instance = poolMember.GetComponent<T>();
             return instance;
         }
 
         private static PoolMember Spawn(GameObject prefab, Transform parent = null, Vector3? position = null, Quaternion?
-            rotation = null)
+            rotation = null, Func<PoolMember, bool> customCheck = null)
         {
             Pool pool = GetOrCreatePool(prefab);
-            PoolMember poolMember = pool.Spawn(parent, position, rotation);
+            PoolMember poolMember = pool.Spawn(parent, position, rotation, customCheck);
             return poolMember;
         }
         
