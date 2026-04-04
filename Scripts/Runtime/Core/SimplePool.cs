@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.Pooling
@@ -124,18 +127,18 @@ namespace BrunoMikoski.Pooling
 
         public static GameObject Spawn(GameObject prefab)
         {
-            return Spawn(prefab, null, null, null).gameObject;
+            return SpawnGameObject(prefab, null, null, null);
         }
 
         public static GameObject Spawn(GameObject prefab, Vector3 pos,
             Quaternion rot)
         {
-            return Spawn(prefab, null, pos, rot).gameObject;
+            return SpawnGameObject(prefab, null, pos, rot);
         }
 
         public static GameObject Spawn(GameObject prefab, Transform parent)
         {
-            return Spawn(prefab, parent, null).gameObject;
+            return SpawnGameObject(prefab, parent, null, null);
         }
 
         public static T Spawn<T>(T prefab) where T : Component
@@ -156,18 +159,56 @@ namespace BrunoMikoski.Pooling
         public static T Spawn<T>(T prefab, Transform parent = null, Vector3? position = null, Quaternion? rotation =
             null) where T : Component
         {
-            PoolMember poolMember = Spawn(prefab.gameObject, parent, position, rotation);
-            T instance = poolMember.GetComponent<T>();
-            return instance;
+            GameObject instance = SpawnGameObject(prefab.gameObject, parent, position, rotation);
+            return instance.GetComponent<T>();
         }
 
-        private static PoolMember Spawn(GameObject prefab, Transform parent = null, Vector3? position = null, Quaternion?
-            rotation = null)
+        private static GameObject SpawnGameObject(GameObject prefab, Transform parent = null, Vector3? position = null,
+            Quaternion? rotation = null)
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                return SpawnEditMode(prefab, parent, position, rotation);
+#endif
             Pool pool = GetOrCreatePool(prefab);
-            PoolMember poolMember = pool.Spawn(parent, position, rotation);
-            return poolMember;
+            return pool.Spawn(parent, position, rotation).gameObject;
         }
+
+#if UNITY_EDITOR
+        private static GameObject InstantiateForEditMode(GameObject prefab, Transform parent)
+        {
+            bool isPrefab = PrefabUtility.IsPartOfAnyPrefab(prefab);
+            if (isPrefab)
+                return (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+
+            return Object.Instantiate(prefab, parent, false);
+        }
+
+        private static GameObject SpawnEditMode(GameObject prefab, Transform parent, Vector3? position,
+            Quaternion? rotation)
+        {
+            GameObject instance = InstantiateForEditMode(prefab, parent);
+
+            if (parent != null)
+                instance.transform.SetParent(parent);
+
+            if (position.HasValue && rotation.HasValue)
+            {
+                instance.transform.SetPositionAndRotation(position.Value, rotation.Value);
+            }
+            else
+            {
+                if (position.HasValue)
+                    instance.transform.position = position.Value;
+
+                if (rotation.HasValue)
+                    instance.transform.rotation = rotation.Value;
+            }
+
+            instance.SetActive(true);
+            return instance;
+        }
+#endif
         
         public static void DespawnAllMembers(GameObject root)
         {
@@ -186,6 +227,13 @@ namespace BrunoMikoski.Pooling
 
         public static void Despawn(GameObject obj)
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                Object.DestroyImmediate(obj);
+                return;
+            }
+#endif
             if (!instanceToPoolMember.TryGetValue(obj.GetInstanceID(), out PoolMember poolMember))
             {
 #if DEBUG
