@@ -112,16 +112,6 @@ namespace BrunoMikoski.Pooling
             return poolMember;
         }
 
-        internal PoolMember Spawn(Transform parent, float activeDuration)
-        {
-            PoolMember poolMember = GetPoolMember();
-
-            poolMember.transform.SetParent(parent, false);
-
-            ReadyPoolMember(poolMember);
-            return poolMember;
-        }
-
         internal PoolMember Spawn(Transform parent, Vector3? position, Quaternion? rotation)
         {
             PoolMember poolMember = GetPoolMember();
