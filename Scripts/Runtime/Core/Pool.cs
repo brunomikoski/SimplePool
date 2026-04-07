@@ -232,7 +232,7 @@ namespace BrunoMikoski.Pooling
 
         public bool UnregisterMember(PoolMember poolMember)
         {
-            return (active.Remove(poolMember) || active.Remove(poolMember));
+            return (active.Remove(poolMember) || inactive.Remove(poolMember));
         }
 
         private void OnDestroy()
