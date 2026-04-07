@@ -220,9 +220,9 @@ namespace BrunoMikoski.Pooling
             }
         }
 
-        public static void Despawn<T>(T prefab) where T : MonoBehaviour
+        public static void Despawn<T>(T instance) where T : MonoBehaviour
         {
-            Despawn(prefab.gameObject);
+            Despawn(instance.gameObject);
         }
 
         public static void Despawn(GameObject obj)
