@@ -84,6 +84,7 @@ namespace BrunoMikoski.Pooling
         {
             for (int i = 0; i < amount; i++)
                 AddObjectToPool();
+            SetPoolDisplayName();
         }
 
         internal PoolMember AddObjectToPool()
@@ -91,8 +92,6 @@ namespace BrunoMikoski.Pooling
             GameObject obj = Instantiate(prefab, transform, false);
             obj.SetActive(false);
             obj.name = prefab.name + " (" + (nextId++) + ")";
-
-            SetPoolDisplayName();
 
             PoolMember poolMember = obj.AddComponent<PoolMember>();
             poolMember.Initialize(this);
@@ -179,6 +178,7 @@ namespace BrunoMikoski.Pooling
                 //Add new instance
                 createdAfterInitialSetup += 1;
                 AddObjectToPool();
+                SetPoolDisplayName();
             }
         }
 
