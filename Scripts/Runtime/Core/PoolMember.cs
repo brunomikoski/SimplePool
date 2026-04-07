@@ -22,9 +22,9 @@ namespace BrunoMikoski.Pooling
         internal void Initialize(Pool pool)
         {
             this.pool = pool;
-            onPoolComponents = GetComponentsInChildren<IOnPool>();
-            onSpawnComponents = GetComponentsInChildren<IOnSpawn>();
-            onDespawnComponents = GetComponentsInChildren<IOnDespawn>();
+            onPoolComponents = GetComponentsInChildren<IOnPool>(true);
+            onSpawnComponents = GetComponentsInChildren<IOnSpawn>(true);
+            onDespawnComponents = GetComponentsInChildren<IOnDespawn>(true);
 
             for (int i = 0; i < onPoolComponents.Length; i++)
                 if (onPoolComponents[i] != null)
