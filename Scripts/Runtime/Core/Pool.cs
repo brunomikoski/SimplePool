@@ -198,7 +198,7 @@ namespace BrunoMikoski.Pooling
 
         private void DespawnAll()
         {
-            for (int i = 0; i < active.Count; i++)
+            for (int i = active.Count - 1; i >= 0; i--)
                 Despawn(active[i]);
         }
 
