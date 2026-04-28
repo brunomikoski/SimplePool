@@ -291,7 +291,7 @@ namespace BrunoMikoski.Pooling
             Preload(component.gameObject, quantity, targetScene, allowDestroying);
         }
         
-        public static bool Preload(GameObject prefab, int? quantity = null, Scene? targetScene = null, bool
+        public static void Preload(GameObject prefab, int? quantity = null, Scene? targetScene = null, bool
             allowDestroying = false)
         {
             Pool pool = GetOrCreatePool(prefab, quantity, targetScene, allowDestroying);
