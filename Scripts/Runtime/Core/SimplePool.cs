@@ -14,11 +14,11 @@ namespace BrunoMikoski.Pooling
 
         private static Transform parent;
 
-        private static Dictionary<int, Pool> prefabIDToPool = new Dictionary<int, Pool>();
-        public static Dictionary<int, Pool> PrefabIDToPool => prefabIDToPool;
+        private static Dictionary<EntityId, Pool> prefabIDToPool = new Dictionary<EntityId, Pool>();
+        public static Dictionary<EntityId, Pool> PrefabIDToPool => prefabIDToPool;
 
-        private static readonly Dictionary<int, PoolMember> instanceToPoolMember =
-            new Dictionary<int, PoolMember>(INITIAL_POOL_MEMBER_DICTIONARY_SIZE);
+        private static readonly Dictionary<EntityId, PoolMember> instanceToPoolMember =
+            new Dictionary<EntityId, PoolMember>(INITIAL_POOL_MEMBER_DICTIONARY_SIZE);
 
         private static bool initialized = false;
         private static bool isApplicationQuiting;
@@ -35,7 +35,7 @@ namespace BrunoMikoski.Pooling
             
             initialized = true;
 
-            prefabIDToPool = new Dictionary<int, Pool>();
+            prefabIDToPool = new Dictionary<EntityId, Pool>();
             parent = new GameObject("SimplePool Objects").transform;
             Application.quitting += OnApplicationQuiting;
             Object.DontDestroyOnLoad(parent);
@@ -62,7 +62,7 @@ namespace BrunoMikoski.Pooling
         {
             Initialize();
 
-            if (prefabIDToPool.TryGetValue(prefab.GetInstanceID(), out Pool pool))
+            if (prefabIDToPool.TryGetValue(prefab.GetEntityId(), out Pool pool))
                 return pool;
 
             if (!quantity.HasValue)
@@ -88,12 +88,12 @@ namespace BrunoMikoski.Pooling
 
         private static void RegisterPool(GameObject prefab, Pool pool)
         {
-            prefabIDToPool[prefab.GetInstanceID()] = pool;
+            prefabIDToPool[prefab.GetEntityId()] = pool;
         }
 
         public static void UnregisterPool(Pool targetPool)
         {
-            prefabIDToPool.Remove(targetPool.Prefab.GetInstanceID());
+            prefabIDToPool.Remove(targetPool.Prefab.GetEntityId());
         }
 
         public static void AddObjectsToPool(Component component, int quantity = 1)
@@ -116,7 +116,7 @@ namespace BrunoMikoski.Pooling
 
         public static void DestroyPool(GameObject prefab)
         {
-            int instanceID = prefab.GetInstanceID();
+            EntityId instanceID = prefab.GetEntityId();
 
             if (!prefabIDToPool.TryGetValue(instanceID, out Pool pool))
                 return;
@@ -234,7 +234,7 @@ namespace BrunoMikoski.Pooling
                 return;
             }
 #endif
-            if (!instanceToPoolMember.TryGetValue(obj.GetInstanceID(), out PoolMember poolMember))
+            if (!instanceToPoolMember.TryGetValue(obj.GetEntityId(), out PoolMember poolMember))
             {
 #if DEBUG
                 Debug.LogWarning("Object '" + obj.name + "' wasn't spawned from a pool. Destroying it instead.");
@@ -291,7 +291,7 @@ namespace BrunoMikoski.Pooling
             Preload(component.gameObject, quantity, targetScene, allowDestroying);
         }
         
-        public static void Preload(GameObject prefab, int? quantity = null, Scene? targetScene = null, bool
+        public static bool Preload(GameObject prefab, int? quantity = null, Scene? targetScene = null, bool
             allowDestroying = false)
         {
             Pool pool = GetOrCreatePool(prefab, quantity, targetScene, allowDestroying);
@@ -302,12 +302,12 @@ namespace BrunoMikoski.Pooling
 
         public static void RegisterPoolMember(PoolMember poolMember)
         {
-            instanceToPoolMember.Add(poolMember.gameObject.GetInstanceID(), poolMember);
+            instanceToPoolMember.Add(poolMember.gameObject.GetEntityId(), poolMember);
         }
 
         public static void UnregisterPoolMember(PoolMember poolMember)
         {
-            instanceToPoolMember.Remove(poolMember.gameObject.GetInstanceID());
+            instanceToPoolMember.Remove(poolMember.gameObject.GetEntityId());
             
             if (poolMember.Pool != null)
                 poolMember.Pool.UnregisterMember(poolMember);
@@ -330,17 +330,17 @@ namespace BrunoMikoski.Pooling
 
         public static bool BelongsToAPool(GameObject gameObject, out PoolMember poolMember)
         {
-            return instanceToPoolMember.TryGetValue(gameObject.GetInstanceID(), out poolMember);
+            return instanceToPoolMember.TryGetValue(gameObject.GetEntityId(), out poolMember);
         }
 
         public static bool HasPoolForItem(GameObject targetGameObject)
         {
-            return prefabIDToPool.TryGetValue(targetGameObject.GetInstanceID(), out _);
+            return prefabIDToPool.TryGetValue(targetGameObject.GetEntityId(), out _);
         }
         
         public static bool HasPoolForItem<T>(T targetComponent) where T: Component
         {
-            return prefabIDToPool.TryGetValue(targetComponent.gameObject.GetInstanceID(), out _);
+            return prefabIDToPool.TryGetValue(targetComponent.gameObject.GetEntityId(), out _);
         }
     }
 }
