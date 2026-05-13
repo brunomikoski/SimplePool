@@ -342,5 +342,16 @@ namespace BrunoMikoski.Pooling
         {
             return prefabIDToPool.TryGetValue(targetComponent.gameObject.GetEntityId(), out _);
         }
+
+        public static void EnsurePoolSize(GameObject targetGameObject, int targetPoolSize, Scene targetScene)
+        {
+            Pool pool = GetOrCreatePool(targetGameObject, targetPoolSize, targetScene);
+            pool.EnsurePoolSize(targetPoolSize);
+        }
+
+        public static void EnsurePoolSize(Component targetComponent, int targetPoolSize, Scene targetScene)
+        {
+            EnsurePoolSize(targetComponent.gameObject, targetPoolSize, targetScene);
+        }
     }
 }

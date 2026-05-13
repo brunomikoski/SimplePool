@@ -241,5 +241,32 @@ namespace BrunoMikoski.Pooling
                 Despawn(poolMember);
             }
         }
+
+        public void EnsurePoolSize(int targetPoolSize)
+        {
+            if (targetPoolSize < 0)
+                targetPoolSize = 0;
+
+            int currentCount = TotalObjectCount;
+            if (currentCount == targetPoolSize)
+                return;
+
+            if (currentCount < targetPoolSize)
+            {
+                AddObjectsToPool(targetPoolSize - currentCount);
+                return;
+            }
+
+            int toRemove = Mathf.Min(currentCount - targetPoolSize, inactive.Count);
+            for (int i = 0; i < toRemove; i++)
+            {
+                int lastIndex = inactive.Count - 1;
+                PoolMember poolMember = inactive[lastIndex];
+                inactive.RemoveAt(lastIndex);
+                poolMember.DestroyInternal();
+            }
+
+            SetPoolDisplayName();
+        }
     }
 }
