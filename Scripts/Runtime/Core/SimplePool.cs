@@ -313,7 +313,7 @@ namespace BrunoMikoski.Pooling
                 poolMember.Pool.UnregisterMember(poolMember);
         }
 
-        public static void OnBeforeSceneUnload(Scene targetScene)
+        public static void BeforeSceneUnload(Scene targetScene)
         {
             sceneUnloadCount++;
             if (!SimplePoolSettings.Instance.DespawnOnSceneUnload)
