@@ -211,11 +211,19 @@ namespace BrunoMikoski.Pooling
 
         public void Destroy()
         {
-            for (int i = 0; i < active.Count; i++)
-                active[i].DestroyInternal();
+            for (int i = active.Count - 1; i >= 0; i--)
+            {
+                PoolMember poolMember = active[i];
+                if (poolMember != null)
+                    poolMember.DestroyInternal();
+            }
 
-            for (int i = 0; i < inactive.Count; i++)
-                inactive[i].DestroyInternal();
+            for (int i = inactive.Count - 1; i >= 0; i--)
+            {
+                PoolMember poolMember = inactive[i];
+                if (poolMember != null)
+                    poolMember.DestroyInternal();
+            }
 
             Object.Destroy(gameObject);
         }
