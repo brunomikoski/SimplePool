@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.Pooling
@@ -14,6 +16,17 @@ namespace BrunoMikoski.Pooling
         private List<PoolMember> inactive;
         private List<PoolMember> active;
 
+        
+        public int UnusedCount
+        {
+            get
+            {
+                if (inactive == null)
+                    return 0;
+                return inactive.Count;
+            }
+        }
+
         //The amount of objects to be pooled at startup time
         private int initialQuantity;
 
@@ -24,36 +37,23 @@ namespace BrunoMikoski.Pooling
         private int nextId = 1;
 
         // The prefab that we are pooling
-        private GameObject prefab;
-        public GameObject Prefab
-        {
-            get { return prefab; }
-        }
+        public GameObject Prefab { get; private set; }
 
         private Scene? scene;
 
-        public bool Persistent
-        {
-            get { return !scene.HasValue; }
-        }
+        public bool Persistent => !scene.HasValue;
 
         private bool allowDestroying;
-        public bool AllowDestroying
+        public bool AllowDestroying => allowDestroying;
+
+        public int TotalObjectCount => inactive.Count + active.Count;
+
+
+        public void Initialize(GameObject targetPrefab, int initialQty, bool targetAllowDestroying)
         {
-            get { return allowDestroying; }
-        }
+            Prefab = targetPrefab;
 
-        public int TotalObjectCount
-        {
-            get { return inactive.Count + active.Count; }
-        }
-
-
-        public void Initialize(GameObject prefab, int initialQty, bool allowDestroying)
-        {
-            this.prefab = prefab;
-
-            PoolSettings poolSettings = prefab.GetComponent<PoolSettings>();
+            PoolSettings poolSettings = targetPrefab.GetComponent<PoolSettings>();
             if (poolSettings != null)
             {
                 initialQty = poolSettings.PoolSize;
@@ -64,7 +64,7 @@ namespace BrunoMikoski.Pooling
 
             inactive = new List<PoolMember>(initialQuantity);
             active = new List<PoolMember>(initialQuantity);
-            this.allowDestroying = allowDestroying;
+            allowDestroying = targetAllowDestroying;
 
             AddObjectsToPool(initialQuantity);
         }
@@ -74,9 +74,10 @@ namespace BrunoMikoski.Pooling
             scene = targetScene;
         }
 
+        [Conditional("UNITY_EDITOR")]
         private void SetPoolDisplayName()
         {
-            gameObject.name = string.Format("{0} Pool - Size: {1} - [{2} -> {3}]", prefab.name, nextId,
+            gameObject.name = string.Format("{0} Pool - Size: {1} - [{2} -> {3}]", Prefab.name, nextId,
                 initialQuantity, createdAfterInitialSetup);
         }
 
@@ -89,9 +90,11 @@ namespace BrunoMikoski.Pooling
 
         internal PoolMember AddObjectToPool()
         {
-            GameObject obj = Instantiate(prefab, transform, false);
+            GameObject obj = Instantiate(Prefab, transform, false);
             obj.SetActive(false);
-            obj.name = prefab.name + " (" + (nextId++) + ")";
+#if UNITY_EDITOR
+            obj.name = Prefab.name + " (" + (nextId++) + ")";
+#endif
 
             PoolMember poolMember = obj.AddComponent<PoolMember>();
             poolMember.Initialize(this);
