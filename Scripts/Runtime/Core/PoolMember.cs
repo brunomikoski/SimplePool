@@ -59,6 +59,9 @@ namespace BrunoMikoski.Pooling
             
             SimplePool.UnregisterPoolMember(this);
 
+            if (!gameObject.scene.isLoaded)
+                return;
+
             if (!destroyInternal && !SimplePool.IsApplicationQuiting && pool != null && !pool.AllowDestroying)
             {
                 if (pool.Persistent)
