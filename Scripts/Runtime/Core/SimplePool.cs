@@ -294,7 +294,14 @@ namespace BrunoMikoski.Pooling
         public static Pool Preload(GameObject prefab, int? quantity = null, Scene? targetScene = null, bool
             allowDestroying = false)
         {
+            bool poolAlreadyExisted = HasPoolForItem(prefab);
             Pool pool = GetOrCreatePool(prefab, quantity, targetScene, allowDestroying);
+
+            if (poolAlreadyExisted && quantity.HasValue)
+            {
+                pool.EnsurePoolSize(quantity.Value);
+                return pool;
+            }
 
             for (int i = pool.TotalObjectCount; i < quantity; i++)
                 pool.AddObjectToPool();
@@ -349,17 +356,6 @@ namespace BrunoMikoski.Pooling
         public static bool HasPoolForItem<T>(T targetComponent) where T: Component
         {
             return prefabIDToPool.TryGetValue(targetComponent.gameObject.GetEntityId(), out _);
-        }
-
-        public static void EnsurePoolSize(GameObject targetGameObject, int targetPoolSize, Scene? targetScene)
-        {
-            Pool pool = GetOrCreatePool(targetGameObject, targetPoolSize, targetScene);
-            pool.EnsurePoolSize(targetPoolSize);
-        }
-
-        public static void EnsurePoolSize(Component targetComponent, int targetPoolSize, Scene? targetScene)
-        {
-            EnsurePoolSize(targetComponent.gameObject, targetPoolSize, targetScene);
         }
     }
 }
