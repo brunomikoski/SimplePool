@@ -78,6 +78,9 @@ namespace BrunoMikoski.Pooling
 
         internal void Despawn()
         {
+            if (!gameObject.scene.isLoaded)
+                return;
+
             if (pool != null)
             {
                 pool.Despawn(this);
