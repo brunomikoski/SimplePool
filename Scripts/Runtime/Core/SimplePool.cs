@@ -27,6 +27,19 @@ namespace BrunoMikoski.Pooling
         private static int sceneUnloadCount;
 
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void SupportDomainReload()
+        {
+            Application.quitting -= OnApplicationQuiting;
+
+            parent = null;
+            prefabIDToPool.Clear();
+            instanceToPoolMember.Clear();
+            initialized = false;
+            isApplicationQuiting = false;
+            sceneUnloadCount = 0;
+        }
+
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
