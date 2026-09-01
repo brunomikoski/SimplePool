@@ -91,12 +91,14 @@ namespace BrunoMikoski.Pooling
         internal PoolMember AddObjectToPool()
         {
             GameObject obj = Instantiate(Prefab, transform, false);
+
+            PoolMember poolMember = obj.AddComponent<PoolMember>();
+
             obj.SetActive(false);
 #if UNITY_EDITOR
             obj.name = Prefab.name + " (" + (nextId++) + ")";
 #endif
 
-            PoolMember poolMember = obj.AddComponent<PoolMember>();
             poolMember.Initialize(this);
             SimplePool.RegisterPoolMember(poolMember);
             inactive.Add(poolMember);
@@ -238,7 +240,27 @@ namespace BrunoMikoski.Pooling
 
         private void OnDestroy()
         {
+            ForgetMembers(active);
+            ForgetMembers(inactive);
+
             SimplePool.UnregisterPool(this);
+        }
+
+        private static void ForgetMembers(List<PoolMember> members)
+        {
+            if (members == null)
+                return;
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                PoolMember poolMember = members[i];
+
+                // Already-destroyed members still hold a registry slot, and Unity's == would hide them.
+                if (!ReferenceEquals(poolMember, null))
+                    SimplePool.ForgetPoolMember(poolMember);
+            }
+
+            members.Clear();
         }
 
         public void OnBeforeSceneUnload(Scene targetScene)

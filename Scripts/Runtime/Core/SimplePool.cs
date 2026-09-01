@@ -324,15 +324,20 @@ namespace BrunoMikoski.Pooling
 
         public static void RegisterPoolMember(PoolMember poolMember)
         {
-            instanceToPoolMember.Add(poolMember.gameObject.GetEntityId(), poolMember);
+            instanceToPoolMember.Add(poolMember.EntityId, poolMember);
         }
 
         public static void UnregisterPoolMember(PoolMember poolMember)
         {
-            instanceToPoolMember.Remove(poolMember.gameObject.GetEntityId());
+            instanceToPoolMember.Remove(poolMember.EntityId);
             
             if (poolMember.Pool != null)
                 poolMember.Pool.UnregisterMember(poolMember);
+        }
+
+        internal static void ForgetPoolMember(PoolMember poolMember)
+        {
+            instanceToPoolMember.Remove(poolMember.EntityId);
         }
 
         public static void BeforeSceneUnload(Scene targetScene)

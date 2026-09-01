@@ -19,9 +19,13 @@ namespace BrunoMikoski.Pooling
         public Pool Pool => pool;
         private bool destroyInternal;
 
+        private EntityId entityId;
+        internal EntityId EntityId => entityId;
+
         internal void Initialize(Pool pool)
         {
             this.pool = pool;
+            entityId = gameObject.GetEntityId();
             onPoolComponents = GetComponentsInChildren<IOnPool>(true);
             onSpawnComponents = GetComponentsInChildren<IOnSpawn>(true);
             onDespawnComponents = GetComponentsInChildren<IOnDespawn>(true);
