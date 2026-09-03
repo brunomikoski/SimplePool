@@ -76,7 +76,18 @@ namespace BrunoMikoski.Pooling
             Initialize();
 
             if (prefabIDToPool.TryGetValue(prefab.GetEntityId(), out Pool pool))
+            {
+                if (targetScene.HasValue && pool.gameObject.scene != targetScene.Value)
+                {
+                    if (pool.transform.parent != null)
+                        pool.transform.SetParent(null);
+
+                    SceneManager.MoveGameObjectToScene(pool.gameObject, targetScene.Value);
+                    pool.SetScene(targetScene.Value);
+                }
+
                 return pool;
+            }
 
             if (!quantity.HasValue)
                 quantity = SimplePoolSettings.Instance.DefaultPoolSize;
